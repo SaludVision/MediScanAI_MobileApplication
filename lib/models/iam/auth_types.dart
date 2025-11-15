@@ -69,16 +69,26 @@ class RegisterRequest {
 }
 
 class RegisterResponse {
-  final UserProfile user;
+  final UserProfile? user;
   final String message;
 
-  RegisterResponse({required this.user, required this.message});
+  RegisterResponse({this.user, required this.message});
 
-  factory RegisterResponse.fromJson(Map<String, dynamic> json) =>
-      RegisterResponse(
+  factory RegisterResponse.fromJson(Map<String, dynamic> json) {
+    // Si el JSON tiene la estructura esperada
+    if (json.containsKey('user') && json['user'] != null) {
+      return RegisterResponse(
         user: UserProfile.fromJson(json['user']),
-        message: json['message'],
+        message: json['message'] ?? 'Registro exitoso',
       );
+    }
+
+    // Si solo tiene el mensaje (respuesta simplificada del backend)
+    return RegisterResponse(
+      user: null,
+      message: json['message'] ?? 'Registro exitoso',
+    );
+  }
 }
 
 class VerifyEmailRequest {

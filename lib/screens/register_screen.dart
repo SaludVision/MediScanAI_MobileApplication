@@ -83,6 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final userData = {
         'name': _nameController.text,
         'email': _emailController.text,
+        'password': _passwordController.text,
         'specialty': _specialtyController.text,
         'dni': _dniController.text,
         'professionalId': _professionalIdController.text,
@@ -99,13 +100,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       } else {
         setState(() {
-          _errorMessage = 'Error al registrar usuario';
+          _errorMessage =
+              authProvider.errorMessage ?? 'Error al registrar usuario';
         });
       }
     } catch (e) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       setState(() {
-        _errorMessage = 'Error de conexión. Inténtalo de nuevo.';
+        _errorMessage =
+            authProvider.errorMessage ??
+            'Error de conexión. Intenta nuevamente.\n\nDetalles: ${e.toString()}';
       });
+      // Print para debug
+      print('Error de registro: $e');
+      print('Error del provider: ${authProvider.errorMessage}');
     } finally {
       if (mounted) {
         setState(() {

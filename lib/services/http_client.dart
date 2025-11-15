@@ -116,8 +116,26 @@ class HttpClient {
       if (response.body.isEmpty) {
         return {} as T;
       }
-      final dynamic decoded = jsonDecode(response.body);
-      return decoded as T;
+
+      try {
+        final dynamic decoded = jsonDecode(response.body);
+        return decoded as T;
+      } catch (e) {
+        // Si la respuesta no es JSON, intentar manejarla como texto plano
+        print('⚠️ Respuesta no-JSON del servidor: ${response.body}');
+
+        // Si esperamos un Map y recibimos texto plano, crear un objeto básico
+        if (T == Map<String, dynamic>) {
+          return {'message': response.body.trim(), 'success': true} as T;
+        }
+
+        // Si no podemos manejar el tipo, relanzar el error
+        throw ApiException(
+          message: 'Respuesta inválida del servidor: ${e.toString()}',
+          statusCode: response.statusCode,
+          response: response.body,
+        );
+      }
     } else {
       throw ApiException(
         message: _extractErrorMessage(response),

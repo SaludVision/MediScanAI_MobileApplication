@@ -874,7 +874,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
   Widget _buildProfileTab() {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        final profile = authProvider.userProfile;
+        final profile = authProvider.userProfileMap;
         if (profile == null) {
           return const Center(child: CircularProgressIndicator());
         }

@@ -1,8 +1,11 @@
 class ApiConfig {
   // URL base del API Gateway
+  // Para Android Emulator: usa 10.0.2.2
+  // Para dispositivo físico: usa la IP de tu computadora (ej: 192.168.1.100)
+  // Para iOS Simulator: usa localhost
   static const String baseUrl = String.fromEnvironment(
     'API_GATEWAY_URL',
-    defaultValue: 'http://localhost:8080',
+    defaultValue: 'http://10.0.2.2:8080', // Emulador Android por defecto
   );
 
   // Timeout

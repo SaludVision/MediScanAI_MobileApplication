@@ -1,57 +1,211 @@
 import 'package:flutter/material.dart';
+import '../services/iam/auth_service.dart';
+import '../services/http_client.dart';
+import '../models/iam/auth_types.dart';
 
 class AuthProvider extends ChangeNotifier {
+  final AuthService _authService = AuthService();
+
   bool _isAuthenticated = false;
   String? _userEmail;
-  Map<String, dynamic>? _userProfile;
+  UserProfile? _userProfile;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   bool get isAuthenticated => _isAuthenticated;
   String? get userEmail => _userEmail;
-  Map<String, dynamic>? get userProfile => _userProfile;
+  UserProfile? get userProfile => _userProfile;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  // Convertir UserProfile a Map para compatibilidad con código existente
+  Map<String, dynamic>? get userProfileMap => _userProfile?.toJson();
+
+  AuthProvider() {
+    _checkAuthStatus();
+  }
+
+  // Verificar si hay sesión guardada al iniciar
+  Future<void> _checkAuthStatus() async {
+    try {
+      final storedProfile = await _authService.getStoredUserProfile();
+      final isAuth = await _authService.isAuthenticated();
+
+      if (storedProfile != null && isAuth) {
+        _userProfile = storedProfile;
+        _userEmail = storedProfile.email;
+        _isAuthenticated = true;
+        notifyListeners();
+      }
+    } catch (e) {
+      // No hay sesión guardada
+      _isAuthenticated = false;
+    }
+  }
 
   Future<bool> login(String email, String password) async {
-    // Simular llamada a API
-    await Future.delayed(const Duration(seconds: 2));
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
-    // Para demo, cualquier email/password funciona
-    if (email.isNotEmpty && password.isNotEmpty) {
+    try {
+      print('🔵 Intentando login: $email');
+      final response = await _authService.login(
+        LoginRequest(email: email, password: password, rememberMe: true),
+      );
+
       _isAuthenticated = true;
-      _userEmail = email;
-      _userProfile = {
-        'name': 'Dr. Usuario',
-        'email': email,
-        'specialty': 'Radiología',
-        'dni': '12345678',
-        'professionalId': 'MED001',
-        'hospital': 'Hospital Central',
-        'phone': '+1234567890',
-      };
+      _userEmail = response.user.email;
+      _userProfile = response.user;
+      _isLoading = false;
+      print('✅ Login exitoso: ${response.user.name}');
       notifyListeners();
       return true;
+    } catch (e) {
+      print('❌ Error en login: $e');
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-    return false;
   }
 
   Future<bool> register(Map<String, dynamic> userData) async {
-    // Simular llamada a API
-    await Future.delayed(const Duration(seconds: 2));
-
-    _isAuthenticated = true;
-    _userEmail = userData['email'];
-    _userProfile = userData;
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
-    return true;
+
+    try {
+      print('🔵 Intentando registrar usuario: ${userData['email']}');
+
+      final response = await _authService.register(
+        RegisterRequest(
+          name: userData['name'],
+          email: userData['email'],
+          password: userData['password'],
+          dni: userData['dni'] ?? '',
+          specialty: userData['specialty'],
+          professionalId: userData['professionalId'] ?? '',
+          hospital: userData['hospital'] ?? '',
+          phone: userData['phone'] ?? '',
+        ),
+      );
+
+      print('✅ Registro exitoso: ${response.message}');
+
+      // NO hacer login automático por ahora debido a problemas en el backend
+      // El backend guarda correctamente pero el login inmediato falla
+      print('⚠️ Login automático deshabilitado temporalmente');
+      print('📝 El usuario debe hacer login manualmente después del registro');
+
+      _isLoading = false;
+      notifyListeners();
+      return true; // Registro exitoso, pero sin login automático
+    } on ApiException catch (e) {
+      print('❌ Error API en registro: ${e.message} (Status: ${e.statusCode})');
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      print('❌ Error desconocido en registro: $e');
+      _errorMessage = 'Error al registrar. Verifica tu conexión.\n\n$e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
-  void logout() {
-    _isAuthenticated = false;
-    _userEmail = null;
-    _userProfile = null;
+  Future<void> logout() async {
+    _isLoading = true;
     notifyListeners();
+
+    try {
+      await _authService.logout();
+    } catch (e) {
+      // Ignorar errores de logout
+    } finally {
+      _isAuthenticated = false;
+      _userEmail = null;
+      _userProfile = null;
+      _errorMessage = null;
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void updateProfile(Map<String, dynamic> updatedProfile) {
-    _userProfile = updatedProfile;
+  Future<bool> updateProfile(Map<String, dynamic> updatedData) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedProfile = await _authService.updateProfile(
+        UpdateProfileRequest(
+          name: updatedData['name'],
+          dni: updatedData['dni'],
+          specialty: updatedData['specialty'],
+          hospital: updatedData['hospital'],
+          phone: updatedData['phone'],
+        ),
+      );
+
+      _userProfile = updatedProfile;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Error al actualizar perfil.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> verifyEmail(String email) async {
+    try {
+      final response = await _authService.verifyEmail(
+        VerifyEmailRequest(email: email),
+      );
+      return response.exists;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(String email, String newPassword) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.resetPassword(
+        ResetPasswordRequest(email: email, newPassword: newPassword),
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Error al restablecer contraseña.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
 }
