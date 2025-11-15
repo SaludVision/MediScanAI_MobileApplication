@@ -1,3 +1,10 @@
+// Export all microservice models
+export 'iam/auth_types.dart';
+export 'analysis/analysis_types.dart';
+export 'reports/report_types.dart';
+export 'notifications/notification_types.dart';
+
+// Legacy models - Deprecated, use microservice models instead
 class UserProfile {
   final String name;
   final String email;
