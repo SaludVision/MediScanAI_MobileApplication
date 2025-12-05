@@ -52,19 +52,19 @@ class _AnalysisServiceEndpoints {
 class _ReportServiceEndpoints {
   const _ReportServiceEndpoints();
 
-  String get base => '/reports';
-  String getById(String id) => '/reports/$id';
-  String get list => '/reports/list';
-  String download(String id) => '/reports/$id/download';
+  String get base => '/api/reports';
+  String get create => '/api/reports';
+  String getById(int id) => '/api/reports/$id';
+  String getByDoctor(int doctorId) => '/api/reports/doctor/$doctorId';
+  String update(int id) => '/api/reports/$id';
 }
 
 class _NotificationServiceEndpoints {
   const _NotificationServiceEndpoints();
 
-  String get base => '/notifications';
-  String get list => '/notifications/list';
-  String markRead(String id) => '/notifications/$id/read';
-  String get markAllRead => '/notifications/read-all';
+  String get base => '/api/notifications';
+  String get create => '/api/notifications';
+  String getByDoctor(int doctorId) => '/api/notifications/doctor/$doctorId';
 }
 
 class _UserServiceEndpoints {

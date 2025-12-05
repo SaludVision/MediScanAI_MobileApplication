@@ -41,7 +41,7 @@ class RegisterRequest {
   final String password;
   final String dni;
   final String specialty;
-  final String professionalId;
+  final String cmpNumber; // Colegiatura (CMP)
   final String hospital;
   final String phone;
 
@@ -51,7 +51,7 @@ class RegisterRequest {
     required this.password,
     required this.dni,
     required this.specialty,
-    required this.professionalId,
+    required this.cmpNumber,
     required this.hospital,
     required this.phone,
   });
@@ -62,31 +62,22 @@ class RegisterRequest {
     'password': password,
     'dni': dni,
     'specialty': specialty,
-    'professionalId': professionalId,
+    'cmpNumber': cmpNumber,
     'hospital': hospital,
     'phone': phone,
   };
 }
 
 class RegisterResponse {
-  final UserProfile? user;
+  final UserProfile user;
   final String message;
 
-  RegisterResponse({this.user, required this.message});
+  RegisterResponse({required this.user, required this.message});
 
   factory RegisterResponse.fromJson(Map<String, dynamic> json) {
-    // Si el JSON tiene la estructura esperada
-    if (json.containsKey('user') && json['user'] != null) {
-      return RegisterResponse(
-        user: UserProfile.fromJson(json['user']),
-        message: json['message'] ?? 'Registro exitoso',
-      );
-    }
-
-    // Si solo tiene el mensaje (respuesta simplificada del backend)
     return RegisterResponse(
-      user: null,
-      message: json['message'] ?? 'Registro exitoso',
+      user: UserProfile.fromJson(json),
+      message: 'Registro exitoso',
     );
   }
 }
@@ -134,11 +125,9 @@ class UserProfile {
   final String email;
   final String dni;
   final String specialty;
-  final String professionalId;
+  final String cmpNumber; // Colegiatura (CMP)
   final String hospital;
   final String phone;
-  final String createdAt;
-  final String updatedAt;
 
   UserProfile({
     required this.id,
@@ -146,24 +135,20 @@ class UserProfile {
     required this.email,
     required this.dni,
     required this.specialty,
-    required this.professionalId,
+    required this.cmpNumber,
     required this.hospital,
     required this.phone,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-    id: json['id'],
-    name: json['name'],
-    email: json['email'],
-    dni: json['dni'],
-    specialty: json['specialty'],
-    professionalId: json['professionalId'],
-    hospital: json['hospital'],
-    phone: json['phone'],
-    createdAt: json['createdAt'],
-    updatedAt: json['updatedAt'],
+    id: json['id'].toString(),
+    name: json['name'] ?? '',
+    email: json['email'] ?? '',
+    dni: json['dni'] ?? '',
+    specialty: json['specialty'] ?? '',
+    cmpNumber: json['cmpNumber'] ?? '',
+    hospital: json['hospital'] ?? '',
+    phone: json['phone'] ?? '',
   );
 
   Map<String, dynamic> toJson() => {
@@ -172,11 +157,9 @@ class UserProfile {
     'email': email,
     'dni': dni,
     'specialty': specialty,
-    'professionalId': professionalId,
+    'cmpNumber': cmpNumber,
     'hospital': hospital,
     'phone': phone,
-    'createdAt': createdAt,
-    'updatedAt': updatedAt,
   };
 }
 
@@ -204,6 +187,27 @@ class UpdateProfileRequest {
     if (phone != null) data['phone'] = phone;
     return data;
   }
+}
+
+class ChangePasswordRequest {
+  final String oldPassword;
+  final String newPassword;
+
+  ChangePasswordRequest({required this.oldPassword, required this.newPassword});
+
+  Map<String, dynamic> toJson() => {
+    'oldPassword': oldPassword,
+    'newPassword': newPassword,
+  };
+}
+
+class ForgotPasswordRequest {
+  final String email;
+  final String newPassword;
+
+  ForgotPasswordRequest({required this.email, required this.newPassword});
+
+  Map<String, dynamic> toJson() => {'email': email, 'newPassword': newPassword};
 }
 
 class ApiError {

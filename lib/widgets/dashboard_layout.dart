@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../screens/login_screen.dart';
+import '../screens/analysis/new_analysis_screen.dart';
+import '../screens/analysis/analysis_history_screen.dart';
+import '../screens/reports/reports_list_screen.dart';
+import '../screens/notifications/notifications_screen.dart';
 
 class DashboardLayout extends StatefulWidget {
   const DashboardLayout({super.key});
@@ -34,6 +38,21 @@ class _DashboardLayoutState extends State<DashboardLayout> {
             ],
           ),
           body: _getCurrentTab(dashboardProvider.selectedIndex),
+          floatingActionButton: dashboardProvider.selectedIndex == 0
+              ? FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NewAnalysisScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_a_photo),
+                  label: const Text('Nuevo Análisis'),
+                  backgroundColor: const Color(0xFF207193),
+                )
+              : null,
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: dashboardProvider.selectedIndex,
             onTap: dashboardProvider.setSelectedIndex,
@@ -83,9 +102,9 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       case 0:
         return _buildHomeTab();
       case 1:
-        return _buildReportsTab();
+        return const ReportsListScreen(); // Pantalla completa de reportes
       case 2:
-        return _buildNotificationsTab();
+        return const NotificationsScreen(); // Pantalla completa de notificaciones
       case 3:
         return _buildSupportTab();
       case 4:
@@ -158,10 +177,10 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                     // Área de drop
                     InkWell(
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función de subida próximamente'),
-                            backgroundColor: Color(0xFF207193),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NewAnalysisScreen(),
                           ),
                         );
                       },
@@ -287,13 +306,55 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                       color: Colors.grey[800],
                     ),
                   ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AnalysisHistoryScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.history, size: 16),
+                    label: const Text('Ver todo'),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
 
               // Lista de análisis recientes
-              ...provider.recentAnalyses.map(
-                (analysis) => Container(
+              if (provider.recentAnalyses.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No hay análisis recientes',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Realiza tu primer análisis con el botón +',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ...provider.recentAnalyses.map(
+                  (analysis) => Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -914,18 +975,20 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Usuario',
-                      style: TextStyle(
+                    Text(
+                      profile['name'] ?? 'Usuario',
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Especialidad médica',
-                      style: TextStyle(fontSize: 14, color: Colors.white70),
+                    Text(
+                      profile['specialty'] ?? 'Especialidad médica',
+                      style: const TextStyle(fontSize: 14, color: Colors.white70),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -962,8 +1025,8 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                           ),
                           const Divider(height: 24),
                           _buildProfileRow(
-                            'ID Profesional',
-                            profile['professionalId'] ?? 'No especificado',
+                            'Número de Colegiatura (CMP)',
+                            profile['cmpNumber'] ?? 'No especificado',
                           ),
                           const Divider(height: 24),
                           _buildProfileRow(
