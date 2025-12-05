@@ -334,7 +334,11 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                      Icon(
+                        Icons.inbox_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'No hay análisis recientes',
@@ -355,78 +359,78 @@ class _DashboardLayoutState extends State<DashboardLayout> {
               else
                 ...provider.recentAnalyses.map(
                   (analysis) => Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.description_outlined,
-                          color: Color(0xFF3B82F6),
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              analysis['patient'],
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '${analysis['type']} • Hace ${analysis['time']}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: analysis['status'] == 'Completado'
-                              ? const Color(0xFFD1FAE5)
-                              : const Color(0xFFFEF3C7),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          analysis['status'],
-                          style: TextStyle(
-                            color: analysis['status'] == 'Completado'
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFFF59E0B),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.description_outlined,
+                            color: Color(0xFF3B82F6),
+                            size: 18,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                analysis['patient'],
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${analysis['type']} • Hace ${analysis['time']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: analysis['status'] == 'Completado'
+                                ? const Color(0xFFD1FAE5)
+                                : const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            analysis['status'],
+                            style: TextStyle(
+                              color: analysis['status'] == 'Completado'
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFF59E0B),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 16),
 
               // Sistema operativo info
@@ -987,7 +991,10 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                     const SizedBox(height: 4),
                     Text(
                       profile['specialty'] ?? 'Especialidad médica',
-                      style: const TextStyle(fontSize: 14, color: Colors.white70),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],

@@ -3,7 +3,6 @@ import '../services/analysis/analysis_service.dart';
 import '../services/reports/report_service.dart';
 import '../services/notifications/notification_service.dart';
 import '../services/http_client.dart';
-import '../models/analysis/analysis_types.dart';
 import '../models/reports/report_types.dart';
 import '../models/notifications/notification_types.dart' as notif;
 import 'dart:io';
@@ -48,12 +47,14 @@ class DashboardProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get reports => _reports
       .map(
         (report) => {
-          'id': report.id,
-          'patient': report.patientId,
-          'type': report.analysisType,
-          'date': _formatDate(report.generatedAt),
-          'result': report.result,
-          'status': report.status.name,
+          'id': report.id.toString(),
+          'patient': report.patientName,
+          'type': report.studyType,
+          'date': _formatDate(report.createdAt.toIso8601String()),
+          'result': report.content.length > 50
+              ? '${report.content.substring(0, 50)}...'
+              : report.content,
+          'status': report.status.displayName,
         },
       )
       .toList();
@@ -62,11 +63,9 @@ class DashboardProvider extends ChangeNotifier {
       .map(
         (notification) => {
           'id': notification.id,
-          'title': notification.title,
           'message': notification.message,
           'time': _getRelativeTime(notification.createdAt),
-          'type': notification.type.name,
-          'read': notification.read,
+          'isRead': notification.isRead,
         },
       )
       .toList();
@@ -101,7 +100,22 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<void> _loadRecentAnalyses() async {
     try {
-      _recentAnalyses = await _analysisService.getRecentAnalyses(limit: 10);
+      // Cargar TODO el historial para obtener el conteo real
+      final history = await _analysisService.getHistory();
+
+      // Convertir AnalysisHistory a Analysis (formato compatible)
+      // Tomar solo los últimos 2 análisis
+      _recentAnalyses = history.take(2).map((historyItem) {
+        return Analysis(
+          id: historyItem.id,
+          patientId: historyItem.patientName,
+          analysisType: _parseAnalysisType(historyItem.studyType),
+          createdAt: historyItem.timestamp.toIso8601String(),
+          status: AnalysisStatus.completed,
+          result: historyItem.diagnosis,
+          imageUrl: historyItem.imagePath,
+        );
+      }).toList();
     } catch (e) {
       _recentAnalyses = [];
     }
@@ -117,8 +131,11 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<void> _loadNotifications() async {
     try {
-      final response = await _notificationService.listNotifications();
-      _notifications = response.notifications;
+      // TODO: Get actual doctor ID from AuthProvider
+      final doctorId = 1;
+      _notifications = await _notificationService.getNotificationsByDoctor(
+        doctorId,
+      );
     } catch (e) {
       _notifications = [];
     }
@@ -126,10 +143,12 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<void> _loadStats() async {
     try {
-      // Por ahora usar valores calculados localmente
-      // TODO: Implementar endpoint de estadísticas en el backend
+      // Obtener el conteo real de análisis del historial
+      final history = await _analysisService.getHistory();
+      final totalAnalyses = history.length;
+
       _stats = {
-        'analysesToday': _recentAnalyses.length,
+        'analysesToday': totalAnalyses, // Total de análisis realizados
         'reportsGenerated': _reports.length,
         'aiAccuracy': 98.5,
         'averageTime': 3.2,
@@ -160,7 +179,7 @@ class DashboardProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final analysis = await _analysisService.uploadAnalysisFromFile(
+      await _analysisService.uploadAnalysisFromFile(
         imageFile: imageFile,
         analysisType: _parseAnalysisType(analysisType),
         patientId: 'PATIENT-${DateTime.now().millisecondsSinceEpoch}',
@@ -185,9 +204,10 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> markNotificationAsRead(String notificationId) async {
+  Future<void> markNotificationAsRead(int notificationId) async {
     try {
-      await _notificationService.markAsRead(notificationId);
+      // TODO: Implement markAsRead endpoint in backend
+      // For now, just reload notifications
       await _loadNotifications();
       notifyListeners();
     } catch (e) {
@@ -197,7 +217,8 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<void> markAllNotificationsAsRead() async {
     try {
-      await _notificationService.markAllAsRead();
+      // TODO: Implement markAllAsRead endpoint in backend
+      // For now, just reload notifications
       await _loadNotifications();
       notifyListeners();
     } catch (e) {
@@ -207,7 +228,9 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<int> getUnreadNotificationsCount() async {
     try {
-      return await _notificationService.getUnreadCount();
+      // TODO: Get actual doctor ID from AuthProvider
+      final doctorId = 1;
+      return await _notificationService.getUnreadCount(doctorId);
     } catch (e) {
       return 0;
     }
@@ -261,9 +284,17 @@ class DashboardProvider extends ChangeNotifier {
     return AnalysisType.radiografia; // default
   }
 
-  String _getRelativeTime(String dateTime) {
+  String _getRelativeTime(dynamic dateTime) {
     try {
-      final date = DateTime.parse(dateTime);
+      DateTime date;
+      if (dateTime is DateTime) {
+        date = dateTime;
+      } else if (dateTime is String) {
+        date = DateTime.parse(dateTime);
+      } else {
+        return 'Recientemente';
+      }
+
       final now = DateTime.now();
       final difference = now.difference(date);
 
