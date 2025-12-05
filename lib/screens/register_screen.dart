@@ -20,7 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   final _specialtyController = TextEditingController();
   final _dniController = TextEditingController();
-  final _professionalIdController = TextEditingController();
+  final _cmpNumberController = TextEditingController();
   final _hospitalController = TextEditingController();
   final _phoneController = TextEditingController();
 
@@ -35,7 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _confirmPasswordController.dispose();
     _specialtyController.dispose();
     _dniController.dispose();
-    _professionalIdController.dispose();
+    _cmpNumberController.dispose();
     _hospitalController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -86,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'password': _passwordController.text,
         'specialty': _specialtyController.text,
         'dni': _dniController.text,
-        'professionalId': _professionalIdController.text,
+        'cmpNumber': _cmpNumberController.text,
         'hospital': _hospitalController.text,
         'phone': _phoneController.text,
       };
@@ -246,9 +246,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 16),
 
                           CustomTextField(
-                            controller: _professionalIdController,
-                            label: 'ID Profesional',
-                            hint: 'MED001',
+                            controller: _cmpNumberController,
+                            label: 'Número de Colegiatura (CMP)',
+                            hint: '123456',
+                            keyboardType: TextInputType.number,
                           ),
                           const SizedBox(height: 16),
 

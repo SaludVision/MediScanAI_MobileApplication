@@ -85,7 +85,7 @@ class AuthProvider extends ChangeNotifier {
           password: userData['password'],
           dni: userData['dni'] ?? '',
           specialty: userData['specialty'],
-          professionalId: userData['professionalId'] ?? '',
+          cmpNumber: userData['cmpNumber'] ?? '',
           hospital: userData['hospital'] ?? '',
           phone: userData['phone'] ?? '',
         ),
@@ -93,14 +93,17 @@ class AuthProvider extends ChangeNotifier {
 
       print('✅ Registro exitoso: ${response.message}');
 
-      // NO hacer login automático por ahora debido a problemas en el backend
-      // El backend guarda correctamente pero el login inmediato falla
-      print('⚠️ Login automático deshabilitado temporalmente');
-      print('📝 El usuario debe hacer login manualmente después del registro');
+      // Ahora podemos hacer login automático porque el backend está completo
+      print('🔄 Haciendo login automático...');
+      final loginSuccess = await login(userData['email'], userData['password']);
+
+      if (!loginSuccess) {
+        print('⚠️ Login automático falló, pero el registro fue exitoso');
+      }
 
       _isLoading = false;
       notifyListeners();
-      return true; // Registro exitoso, pero sin login automático
+      return true;
     } on ApiException catch (e) {
       print('❌ Error API en registro: ${e.message} (Status: ${e.statusCode})');
       _errorMessage = e.message;
@@ -140,7 +143,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (_userProfile == null) {
+        throw Exception('No hay usuario autenticado');
+      }
+
       final updatedProfile = await _authService.updateProfile(
+        _userProfile!.id,
         UpdateProfileRequest(
           name: updatedData['name'],
           dni: updatedData['dni'],
