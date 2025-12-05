@@ -42,6 +42,7 @@ dependencies:
   # Microservices dependencies
   http: ^1.1.0  # HTTP client for API calls
   flutter_secure_storage: ^9.0.0  # Secure storage for tokens
+  path: ^1.9.0  # Path utilities for file handling
 
 dev_dependencies:
   flutter_test:
